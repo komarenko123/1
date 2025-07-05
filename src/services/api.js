@@ -1,6 +1,8 @@
 import axios from 'axios';
 
 export default axios.create({
-  baseURL: '/api',
-  timeout: 5000,
+  baseURL: 'https://komarenko123.github.io/1/api',
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });

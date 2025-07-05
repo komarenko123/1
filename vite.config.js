@@ -3,13 +3,19 @@ import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
   plugins: [vue()],
-  base: '/1/',  // Указано имя вашего репозитория "1"
+  base: '/1/',
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'https://komarenko123.github.io/1/',
         changeOrigin: true,
-      },
-    },
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   },
+  define: {
+    'process.env': {
+      VITE_SOCKET_URL: 'https://komarenko123.github.io/1/'
+    }
+  }
 });

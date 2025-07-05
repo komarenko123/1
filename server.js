@@ -209,27 +209,72 @@ app.get('/api/advertisers', async (req, res) => {
 });
 
 // --- WebSocket уведомления (автообновление фронта) ---
+// --- WebSocket уведомления (автообновление фронта) ---
 const httpServer = createServer(app);
-const io = new Server(httpServer, { cors: { origin: '*' } });
+const io = new Server(httpServer, { 
+  cors: { 
+    origin: 'https://komarenko123.github.io',
+    methods: ['GET', 'POST']
+  }
+});
 
 (async () => {
   try {
-    const listener = new Client({ connectionString: process.env.DATABASE_URL });
+    const listener = new Client({ 
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+    
     await listener.connect();
     await listener.query('LISTEN tasks_channel');
+    
     listener.on('notification', msg => {
-      // Просто пересылаем уведомление всем клиентам
-      io.emit('task_change', JSON.parse(msg.payload));
+      try {
+        const payload = JSON.parse(msg.payload);
+        io.emit('task_change', payload);
+        console.log('WS: Notification forwarded', payload);
+      } catch (err) {
+        console.error('WS: Error parsing notification:', err);
+      }
     });
+
     listener.on('error', err => {
-      console.error('Database listener error:', err);
+      console.error('DB Listener error:', err);
+      setTimeout(() => reconnectListener(listener), 5000);
     });
+
   } catch (error) {
-    console.error('Failed to setup database listener:', error);
+    console.error('Failed to setup DB listener:', error);
+    process.exit(1);
   }
 })();
 
-const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+// Функция переподключения
+async function reconnectListener(oldListener) {
+  try {
+    if (oldListener) await oldListener.end();
+    
+    const newListener = new Client({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+    
+    await newListener.connect();
+    await newListener.query('LISTEN tasks_channel');
+    
+    newListener.on('notification', msg => {
+      io.emit('task_change', JSON.parse(msg.payload));
+    });
+    
+    newListener.on('error', err => {
+      console.error('DB Listener error:', err);
+      setTimeout(() => reconnectListener(newListener), 5000);
+    });
+    
+    console.log('DB Listener reconnected successfully');
+    return newListener;
+  } catch (err) {
+    console.error('Reconnection failed:', err);
+    setTimeout(() => reconnectListener(), 10000);
+  }
+}
