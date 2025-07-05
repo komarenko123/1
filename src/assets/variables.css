@@ -1,0 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+
+:root {
+  --font-family: 'Inter', sans-serif;
+  --font-size-base: 16px;
+  --font-size-sm: 0.875rem;
+
+  --bg-gradient: linear-gradient(135deg, #0a3d1b, #000000);
+  --surface-bg: rgba(0, 0, 0, 0.6);
+  --card-bg: #1f1f1f;
+  --text-main: #ffffff;
+
+  --header-purple: #8a2be2;
+  --button-gradient: linear-gradient(135deg, #8a2be2, #ffffff);
+
+  --radius: 0.5rem;
+  --shadow-light: 0 2px 8px rgba(0,0,0,0.4);
+  --transition: 0.2s ease-in-out;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  background: var(--bg-gradient);
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+.container {
+  margin: 1rem;
+  padding: 1rem;
+}
